@@ -16,29 +16,27 @@ func NewSessionTimers() *SessionTimers {
 	return &SessionTimers{m: make(map[string]*time.Timer)}
 }
 
-// Get returns the timer with the given id or nil.
-func (t *SessionTimers) Get(id string) *time.Timer {
+// Get returns the timer with the given id. ok is true,
+// if the timer exists and false otherwise.
+func (t *SessionTimers) Get(id string) (tm *time.Timer, ok bool) {
 	t.RLock()
 	defer t.RUnlock()
-	return t.m[id]
+	tm, ok = t.m[id]
+	return
 }
 
-// Set stores the timer under given id. If tm is nil the timer
-// witht the given id is removed.
+// Set stores the timer under given id.
 func (t *SessionTimers) Set(id string, tm *time.Timer) {
 	t.Lock()
 	defer t.Unlock()
-	if tm == nil {
-		// todo(fs): shouldn't we call Stop() here?
-		delete(t.m, id)
-	} else {
-		t.m[id] = tm
-	}
+	t.m[id] = tm
 }
 
 // Del removes the timer with the given id.
 func (t *SessionTimers) Del(id string) {
-	t.Set(id, nil)
+	t.Lock()
+	defer t.Unlock()
+	delete(t.m, id)
 }
 
 // Len returns the number of registered timers.

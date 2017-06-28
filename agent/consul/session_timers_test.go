@@ -22,34 +22,26 @@ func TestSessionTimers(t *testing.T) {
 	}
 
 	// check that non-existent id returns nil
-	if got, want := m.Get("foo"), (*time.Timer)(nil); got != want {
-		t.Fatalf("got %v want %v", got, want)
+	if _, ok := m.Get("foo"); ok {
+		t.Fatalf("got %v want %v", ok, false)
 	}
 
-	// add a timer and look it up and delete via Set(id, nil)
+	// add a timer and look it up and delete it
 	tm := newTm(time.Millisecond)
 	m.Set("foo", tm)
 	if got, want := m.Len(), 1; got != want {
 		t.Fatalf("got len %d want %d", got, want)
 	}
-	if got, want := m.Get("foo"), tm; got != want {
+	gottm, ok := m.Get("foo")
+	if got, want := ok, true; got != want {
 		t.Fatalf("got %v want %v", got, want)
 	}
-	m.Set("foo", nil)
-	if got, want := m.Get("foo"), (*time.Timer)(nil); got != want {
-		t.Fatalf("got %v want %v", got, want)
-	}
-	waitForTimer()
-
-	// same thing via Del(id)
-	tm = newTm(time.Millisecond)
-	m.Set("foo", tm)
-	if got, want := m.Get("foo"), tm; got != want {
+	if got, want := gottm, tm; got != want {
 		t.Fatalf("got %v want %v", got, want)
 	}
 	m.Del("foo")
-	if got, want := m.Len(), 0; got != want {
-		t.Fatalf("got len %d want %d", got, want)
+	if _, ok := m.Get("foo"); ok {
+		t.Fatalf("got %v want %v", ok, false)
 	}
 	waitForTimer()
 
